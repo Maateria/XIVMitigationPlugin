@@ -1,0 +1,14 @@
+{
+  "Author": "Maateria",
+  "Name": "XIVMitigation Plugin",
+  "Punchline": "Highlights your mitigation spells in real time during fights. Works with xivmitigation.com.",
+  "Description": "Reads an XIVMitigation plan file and shows an in-game overlay with upcoming spells for your role. Works with plans exported from XIVMitigation (https://xivmitigation.com). Use /xivmit to toggle the overlay, /xivmit config to open settings.",
+  "ApplicableVersion": "any",
+  "Tags": [
+    "mitigation",
+    "raid",
+    "overlay",
+    "healer",
+    "tank"
+  ]
+}
