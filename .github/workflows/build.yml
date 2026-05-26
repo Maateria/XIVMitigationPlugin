@@ -59,10 +59,10 @@ jobs:
       - name: Update pluginmaster.json
         shell: pwsh
         run: |
-          # -NoEnumerate preserves the JSON array wrapper (PS7 unwraps single-element arrays by default)
-          $pm = Get-Content pluginmaster.json -Raw | ConvertFrom-Json -NoEnumerate
-          $pm[0].AssemblyVersion = "${{ steps.version.outputs.version }}"
-          $pm | ConvertTo-Json -Depth 10 | Set-Content pluginmaster.json -Encoding UTF8
+          # Simple regex replace — never touches the JSON structure, array brackets are preserved
+          $content = Get-Content pluginmaster.json -Raw
+          $content = $content -replace '"AssemblyVersion":\s*"[^"]*"', '"AssemblyVersion": "${{ steps.version.outputs.version }}"'
+          [System.IO.File]::WriteAllText("$PWD\pluginmaster.json", $content, [System.Text.Encoding]::UTF8)
           echo "pluginmaster.json updated to ${{ steps.version.outputs.version }}"
 
       - name: Commit pluginmaster.json
