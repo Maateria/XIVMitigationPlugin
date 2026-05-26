@@ -1,0 +1,81 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore XIVMitigationPlugin/XIVMitigationPlugin.csproj
+
+      - name: Build (Release)
+        run: dotnet build XIVMitigationPlugin/XIVMitigationPlugin.csproj --configuration Release --no-restore
+
+      - name: Read built version
+        id: version
+        shell: pwsh
+        run: |
+          $json = Get-Content "XIVMitigationPlugin/bin/x64/Release/XIVMitigationPlugin.json" | ConvertFrom-Json
+          $v = $json.AssemblyVersion
+          echo "version=$v" >> $env:GITHUB_OUTPUT
+          echo "Detected version: $v"
+
+      - name: Create zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "XIVMitigationPlugin/bin/x64/Release/*" `
+                           -DestinationPath "XIVMitigationPlugin.zip" -Force
+
+      - name: Update pluginmaster.json
+        shell: pwsh
+        run: |
+          $pm = Get-Content pluginmaster.json | ConvertFrom-Json
+          $pm[0].AssemblyVersion = "${{ steps.version.outputs.version }}"
+          $pm | ConvertTo-Json -Depth 10 | Set-Content pluginmaster.json -Encoding UTF8
+          echo "pluginmaster.json updated to ${{ steps.version.outputs.version }}"
+
+      - name: Commit pluginmaster.json
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pluginmaster.json
+          $diff = git diff --staged --name-only
+          if ($diff) {
+            git commit -m "chore: bump pluginmaster to v${{ steps.version.outputs.version }} [skip ci]"
+            git push
+          } else {
+            echo "pluginmaster.json already up to date, nothing to commit."
+          }
+
+      - name: Create / update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Latest Build"
+          body: |
+            Automatically built from the latest commit on `master`.
+            **Version:** ${{ steps.version.outputs.version }}
+
+            ### Installation
+            Copy the URL below and add it to Dalamud → Settings → Experimental → Custom Plugin Repositories:
+            ```
+            https://raw.githubusercontent.com/Maateria/XIVMitigationPlugin/master/pluginmaster.json
+            ```
+          files: XIVMitigationPlugin.zip
+          prerelease: false

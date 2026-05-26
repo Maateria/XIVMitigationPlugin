@@ -40,30 +40,30 @@ The overlay and hotbar highlights update in real time as the fight progresses.
 
 ## Installation
 
-This plugin is not available in the official Dalamud plugin repository. You need to load it manually as a dev plugin.
+This plugin is not available in the official Dalamud plugin repository. Install it by adding this repository to Dalamud's custom plugin list.
 
-### Option 1 — Load the pre-built DLL (easiest)
+### Add the custom repository (recommended)
 
-1. Download the latest release from the [Releases](https://github.com/Maateria/XIVMitigationPlugin/releases) page.
-2. Extract the ZIP and note the path to `XIVMitigationPlugin.dll`.
-3. In-game, type `/xlsettings` and go to **Experimental**.
-4. Under **Dev Plugin Locations**, add the full path to `XIVMitigationPlugin.dll`.
-5. Open `/xlplugins`, go to **Dev Tools > Installed Dev Plugins**, and enable **XIVMitigation Plugin**.
+1. In-game, type `/xlsettings` and go to **Experimental**.
+2. Under **Custom Plugin Repositories**, paste the following URL and click the **+** button:
+   ```
+   https://raw.githubusercontent.com/Maateria/XIVMitigationPlugin/master/pluginmaster.json
+   ```
+3. Click **Save**.
+4. Open `/xlplugins`, search for **XIVMitigation Plugin** and install it.
 
-### Option 2 — Build from source
+That's it — updates will be applied automatically whenever a new version is released.
+
+### Build from source (advanced)
 
 1. Install the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 2. Clone this repository:
    ```
    git clone https://github.com/Maateria/XIVMitigationPlugin.git
    ```
-3. Open `XIVMitigationPlugin.sln` in Visual Studio or JetBrains Rider.
-4. Build the solution (Debug or Release).
-5. The DLL will be located at:
-   ```
-   XIVMitigationPlugin/bin/x64/Debug/XIVMitigationPlugin.dll
-   ```
-6. Follow steps 3–5 from Option 1 to load it into Dalamud.
+3. Open `XIVMitigationPlugin.sln` in Visual Studio or JetBrains Rider and build (Debug or Release).
+4. In `/xlsettings` → **Experimental** → **Dev Plugin Locations**, add the path to the built `XIVMitigationPlugin.dll`.
+5. Enable it in `/xlplugins` → **Dev Tools > Installed Dev Plugins**.
 
 ---
 

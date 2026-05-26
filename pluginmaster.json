@@ -1,0 +1,19 @@
+[
+  {
+    "Author": "Maateria",
+    "Name": "XIVMitigation Plugin",
+    "InternalName": "XIVMitigationPlugin",
+    "AssemblyVersion": "1.0.0.0",
+    "Description": "Reads an XIVMitigation plan file and shows an in-game overlay with upcoming spells for your role. Works with plans exported from XIVMitigation (https://xivmitigation.com). Use /xivmit to toggle the overlay, /xivmit config to open settings.",
+    "Punchline": "Highlights your mitigation spells in real time during fights. Works with xivmitigation.com.",
+    "RepoUrl": "https://github.com/Maateria/XIVMitigationPlugin",
+    "ApplicableVersion": "any",
+    "Tags": [ "mitigation", "raid", "overlay", "healer", "tank" ],
+    "DalamudApiLevel": 15,
+    "DownloadLinkInstall": "https://github.com/Maateria/XIVMitigationPlugin/releases/download/latest/XIVMitigationPlugin.zip",
+    "DownloadLinkUpdate": "https://github.com/Maateria/XIVMitigationPlugin/releases/download/latest/XIVMitigationPlugin.zip",
+    "DownloadLinkTesting": "https://github.com/Maateria/XIVMitigationPlugin/releases/download/latest/XIVMitigationPlugin.zip",
+    "IsHide": false,
+    "IsTestingExclusive": false
+  }
+]
