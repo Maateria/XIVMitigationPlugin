@@ -20,6 +20,14 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Download Dalamud
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://goatcorp.github.io/dalamud-distrib/stg/latest.zip" `
+                            -OutFile "$env:RUNNER_TEMP\dalamud.zip"
+          Expand-Archive -Force "$env:RUNNER_TEMP\dalamud.zip" "$env:RUNNER_TEMP\dalamud"
+          echo "DALAMUD_HOME=$env:RUNNER_TEMP\dalamud" >> $env:GITHUB_ENV
+
       - name: Restore
         run: dotnet restore XIVMitigationPlugin/XIVMitigationPlugin.csproj
 
