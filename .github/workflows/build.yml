@@ -59,7 +59,8 @@ jobs:
       - name: Update pluginmaster.json
         shell: pwsh
         run: |
-          $pm = Get-Content pluginmaster.json | ConvertFrom-Json
+          # -NoEnumerate preserves the JSON array wrapper (PS7 unwraps single-element arrays by default)
+          $pm = Get-Content pluginmaster.json -Raw | ConvertFrom-Json -NoEnumerate
           $pm[0].AssemblyVersion = "${{ steps.version.outputs.version }}"
           $pm | ConvertTo-Json -Depth 10 | Set-Content pluginmaster.json -Encoding UTF8
           echo "pluginmaster.json updated to ${{ steps.version.outputs.version }}"
