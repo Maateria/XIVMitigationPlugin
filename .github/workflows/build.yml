@@ -60,9 +60,11 @@ jobs:
         shell: pwsh
         run: |
           # Simple regex replace — never touches the JSON structure, array brackets are preserved
+          # Use UTF8Encoding($false) to write WITHOUT BOM (System.Text.Encoding.UTF8 adds BOM by default)
           $content = Get-Content pluginmaster.json -Raw
           $content = $content -replace '"AssemblyVersion":\s*"[^"]*"', '"AssemblyVersion": "${{ steps.version.outputs.version }}"'
-          [System.IO.File]::WriteAllText("$PWD\pluginmaster.json", $content, [System.Text.Encoding]::UTF8)
+          $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+          [System.IO.File]::WriteAllText("$PWD\pluginmaster.json", $content, $utf8NoBom)
           echo "pluginmaster.json updated to ${{ steps.version.outputs.version }}"
 
       - name: Commit pluginmaster.json
