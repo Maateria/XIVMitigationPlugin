@@ -1,78 +1,138 @@
-> ⚠️ **Don't click Fork!**
-> 
-> This is a GitHub Template repo. If you want to use this for a plugin, [use this template][new-repo] to make a new repo!
->
-> ![image](https://github.com/goatcorp/SamplePlugin/assets/16760685/d9732094-e1ed-4769-a70b-58ed2b92580c)
+# XIVMitigation Plugin
 
-# SamplePlugin
+A [Dalamud](https://github.com/goatcorp/Dalamud) plugin for Final Fantasy XIV that displays a real-time mitigation overlay during raid fights, highlighting the spells you need to cast directly on your hotbars.
 
-[![Use This Template badge](https://img.shields.io/badge/Use%20This%20Template-0?logo=github&labelColor=grey)][new-repo]
+Works with plans created and exported from **[xivmitigation.com](https://xivmitigation.com)**.
 
+---
 
-Simple example plugin for Dalamud.
+## What does it do?
 
-This is not designed to be the simplest possible example, but it is also not designed to cover everything you might want to do. For more detailed questions, come ask in [the Discord](https://discord.gg/holdshift).
+When you load a mitigation plan into the plugin, it will:
 
-## Main Points
+- Show an **overlay window** listing upcoming mechanics and which spells each role needs to cast, along with a countdown timer for each mechanic.
+- **Highlight the corresponding spell icons** on your hotbars with a colored frame so you can instantly see what to press without looking away from the fight.
+- Display a **live countdown timer** directly on each highlighted spell icon.
+- Automatically stop highlighting when combat ends.
 
-* Simple functional plugin
-  * Slash command
-  * Main UI
-  * Settings UI
-  * Image loading
-  * Plugin json
-* Simple, slightly-improved plugin configuration handling
-* Project organization
-  * Copies all necessary plugin files to the output directory
-    * Does not copy dependencies that are provided by dalamud
-    * Output directory can be zipped directly and have exactly what is required
-  * Hides data files from visual studio to reduce clutter
-    * Also allows having data files in different paths than VS would usually allow if done in the IDE directly
+The overlay and hotbar highlights update in real time as the fight progresses.
 
+---
 
-The intention is less that any of this is used directly in other projects, and more to show how similar things can be done.
+## Features
 
-## How To Use
+- Real-time overlay window with upcoming mechanics and assigned mitigation spells
+- Hotbar spell highlighting with a visible colored frame
+- Live countdown timer displayed on each highlighted spell icon
+- Filter by role (show only your role, or all roles at once)
+- Configurable lead time (how many seconds before a mechanic the highlight appears)
+- Spell names displayed in your game client language
+- Highlights only active during combat
 
-### Getting Started
+---
 
-To begin, [clone this template repository][new-repo] to your own GitHub account. This will automatically bring in everything you need to get a jumpstart on development. You do not need to fork this repository unless you intend to contribute modifications to it.
+## Requirements
 
-Be sure to also check out the [Dalamud Developer Docs][dalamud-docs] for helpful information about building your own plugin. The Developer Docs includes helpful information about all sorts of things, including [how to submit][submit] your newly-created plugin to the official repository. Assuming you use this template repository, the provided project build configuration and license are already chosen to make everything a breeze.
+- [Final Fantasy XIV](https://www.finalfantasyxiv.com/) with [XIVLauncher](https://goatcorp.github.io/) and [Dalamud](https://github.com/goatcorp/Dalamud) installed
+- A mitigation plan exported from [xivmitigation.com](https://xivmitigation.com)
 
-[new-repo]: https://github.com/new?template_name=SamplePlugin&template_owner=goatcorp
-[dalamud-docs]: https://dalamud.dev
-[submit]: https://dalamud.dev/plugin-publishing/submission
+---
 
-### Prerequisites
+## Installation
 
-SamplePlugin assumes all the following prerequisites are met:
+This plugin is not available in the official Dalamud plugin repository. You need to load it manually as a dev plugin.
 
-* XIVLauncher, FINAL FANTASY XIV, and Dalamud have all been installed and the game has been run with Dalamud at least once.
-* XIVLauncher is installed to its default directories and configurations.
-  * If a custom path is required for Dalamud's dev directory, it must be set with the `DALAMUD_HOME` environment variable.
-* A .NET Core 8 SDK has been installed and configured, or is otherwise available. (In most cases, the IDE will take care of this.)
+### Option 1 — Load the pre-built DLL (easiest)
 
-### Building
+1. Download the latest release from the [Releases](https://github.com/Maateria/XIVMitigationPlugin/releases) page.
+2. Extract the ZIP and note the path to `XIVMitigationPlugin.dll`.
+3. In-game, type `/xlsettings` and go to **Experimental**.
+4. Under **Dev Plugin Locations**, add the full path to `XIVMitigationPlugin.dll`.
+5. Open `/xlplugins`, go to **Dev Tools > Installed Dev Plugins**, and enable **XIVMitigation Plugin**.
 
-1. Open up `SamplePlugin.sln` in your C# editor of choice (likely [Visual Studio](https://visualstudio.microsoft.com) or [JetBrains Rider](https://www.jetbrains.com/rider/)).
-2. Build the solution. By default, this will build a `Debug` build, but you can switch to `Release` in your IDE.
-3. The resulting plugin can be found at `SamplePlugin/bin/x64/Debug/SamplePlugin.dll` (or `Release` if appropriate.)
+### Option 2 — Build from source
 
-### Activating in-game
+1. Install the [.NET 10 SDK](https://dotnet.microsoft.com/download).
+2. Clone this repository:
+   ```
+   git clone https://github.com/Maateria/XIVMitigationPlugin.git
+   ```
+3. Open `XIVMitigationPlugin.sln` in Visual Studio or JetBrains Rider.
+4. Build the solution (Debug or Release).
+5. The DLL will be located at:
+   ```
+   XIVMitigationPlugin/bin/x64/Debug/XIVMitigationPlugin.dll
+   ```
+6. Follow steps 3–5 from Option 1 to load it into Dalamud.
 
-1. Launch the game and use `/xlsettings` in chat or `xlsettings` in the Dalamud Console to open up the Dalamud settings.
-    * In here, go to `Experimental`, and add the full path to the `SamplePlugin.dll` to the list of Dev Plugin Locations.
-2. Next, use `/xlplugins` (chat) or `xlplugins` (console) to open up the Plugin Installer.
-    * In here, go to `Dev Tools > Installed Dev Plugins`, and the `SamplePlugin` should be visible. Enable it.
-3. You should now be able to use `/pmycommand` (chat) or `pmycommand` (console)!
+---
 
-Note that you only need to add it to the Dev Plugin Locations once (Step 1); it is preserved afterwards. You can disable, enable, or load your plugin on startup through the Plugin Installer.
+## How to create a mitigation plan
 
-### Reconfiguring for your own uses
+1. Go to **[xivmitigation.com](https://xivmitigation.com)** and select the fight you want to plan for.
+2. Assign mitigation spells to each mechanic for each role (MT, OT, H1, H2, M1, M2, R1, R2).
+3. Export the plan as a **JSON file** using the site's export feature.
+4. Save the file somewhere accessible on your computer.
 
-Replace all references to `SamplePlugin` in all the files and filenames with your desired name, then start building the plugin of your dreams. You'll figure it out 😁
+---
 
-Dalamud will load the JSON file (by default, `SamplePlugin/SamplePlugin.json`) next to your DLL and use it for metadata, including the description for your plugin in the Plugin Installer. Make sure to update this with information relevant to _your_ plugin!
+## How to use the plugin
 
-All participation in this repository is governed by our [Code of Conduct](https://dalamud.dev/code-of-conduct). If you used AI tooling at any point, review the [AI Usage Policy](https://dalamud.dev/plugin-publishing/ai-policy) and disclose your level of AI use. Entirely AI-generated submissions will be rejected, and undisclosed AI use may result in a ban.
+### First setup
+
+1. In-game, type `/xivmit config` to open the settings window.
+2. Click **Browse** and select the JSON plan file you exported from xivmitigation.com.
+3. Select your **role** (MT, OT, H1, H2, M1, M2, R1, R2).
+4. Adjust the **lead time** (how many seconds before a mechanic the overlay and highlights activate — default is 10 seconds).
+5. Close the settings window.
+
+### During a fight
+
+- The overlay window shows upcoming mechanics with a countdown and the spells assigned to each role.
+- When a mechanic is within your configured lead time, the corresponding spells are highlighted on your hotbars with a red frame and a live countdown timer.
+- When no mechanic is imminent, the next upcoming mechanic is shown in preview with a dimmer highlight so you can prepare in advance.
+- Highlights disappear automatically when you leave combat.
+
+---
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `/xivmit` | Toggle the overlay window |
+| `/xivmit config` | Open the settings window |
+| `/xivmit debug` | Print debug information to `/xllog` (useful for troubleshooting) |
+
+---
+
+## Settings
+
+| Setting | Description |
+|---|---|
+| **Plan file** | Path to the JSON file exported from xivmitigation.com |
+| **Role** | Your role in the raid (MT, OT, H1, H2, M1, M2, R1, R2) |
+| **Lead time** | Seconds before a mechanic when highlights activate |
+| **Show all roles** | Display spells for every role instead of just yours |
+| **Visible mechanics** | Number of upcoming mechanics shown in the overlay |
+
+---
+
+## Troubleshooting
+
+**Spells are not highlighted on my hotbars**
+- Make sure you are in combat (highlights only appear during active combat).
+- Run `/xivmit debug` and check `/xllog` for details. It will show whether spell names were found in the cache and whether they exist on your hotbars.
+- Ensure the spells assigned in your plan are actually placed on one of your visible hotbars (hotbars 1–10).
+
+**Spell names in the overlay are in English**
+- This can happen if Lumina could not load the localized action sheet. Try reloading the plugin.
+
+**The plan does not load**
+- Make sure the JSON file was exported directly from xivmitigation.com using the plugin export feature.
+- Check that the file path in the settings does not contain special characters.
+
+---
+
+## License
+
+[AGPL-3.0](LICENSE.md)
