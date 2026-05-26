@@ -38,7 +38,14 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          $json = Get-Content "XIVMitigationPlugin/bin/x64/Release/XIVMitigationPlugin.json" | ConvertFrom-Json
+          $jsonPath = Get-ChildItem -Recurse "XIVMitigationPlugin/bin" -Filter "XIVMitigationPlugin.json" `
+                      | Where-Object { $_.FullName -notlike "*\obj\*" } `
+                      | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $jsonPath) { throw "XIVMitigationPlugin.json not found under XIVMitigationPlugin/bin" }
+          Write-Host "Found manifest at: $jsonPath"
+          $outDir = Split-Path $jsonPath -Parent
+          echo "outdir=$outDir" >> $env:GITHUB_OUTPUT
+          $json = Get-Content $jsonPath | ConvertFrom-Json
           $v = $json.AssemblyVersion
           echo "version=$v" >> $env:GITHUB_OUTPUT
           echo "Detected version: $v"
@@ -46,7 +53,7 @@ jobs:
       - name: Create zip
         shell: pwsh
         run: |
-          Compress-Archive -Path "XIVMitigationPlugin/bin/x64/Release/*" `
+          Compress-Archive -Path "${{ steps.version.outputs.outdir }}\*" `
                            -DestinationPath "XIVMitigationPlugin.zip" -Force
 
       - name: Update pluginmaster.json
