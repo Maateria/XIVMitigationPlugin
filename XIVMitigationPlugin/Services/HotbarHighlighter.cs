@@ -73,14 +73,19 @@ public class HotbarHighlighter : IDisposable
                 return;
             }
 
-            // RowId → nom EN (pour construire la traduction ensuite)
+            // RowId → nom EN (pour construire la traduction ensuite).
+            // On utilise l'affectation directe (pas TryAdd) pour que les noms en
+            // double — typiquement les anciennes pet-actions Scholar converties en
+            // actions joueur en 7.0 (ex: "Whispering Dawn", "Fey Illumination") —
+            // soient toujours résolus vers le RowId le plus récent (le plus élevé),
+            // qui correspond à la version réellement placée sur la hotbar.
             var idToEnName = new Dictionary<uint, string>();
             foreach (var row in enSheet)
             {
                 var name = row.Name.ToString();
                 if (!string.IsNullOrWhiteSpace(name))
                 {
-                    _nameToId.TryAdd(name, row.RowId);
+                    _nameToId[name]      = row.RowId;  // ← écrase si doublon (garde le plus haut RowId)
                     idToEnName[row.RowId] = name;
                 }
             }
