@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>XIVMitigationPlugin</AssemblyName>
     <RootNamespace>XIVMitigationPlugin</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <PackageProjectUrl>https://github.com/Maateria/XIVMitigationPlugin</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <IsPackable>false</IsPackable>
