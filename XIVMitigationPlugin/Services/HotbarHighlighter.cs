@@ -25,8 +25,15 @@ public class HotbarHighlighter : IDisposable
     // Police FFXIV baked à 18 px — rendu net, pas de flou de scaling
     private readonly IFontHandle _timerFont;
 
-    // Nom anglais de spell → Action RowId FFXIV
-    private readonly Dictionary<string, uint> _nameToId = new(StringComparer.OrdinalIgnoreCase);
+    // Nom anglais de spell → TOUS les Action RowIds FFXIV portant ce nom.
+    // On stocke une liste plutôt qu'un seul RowId parce que certains noms
+    // ont plusieurs entrées dans la feuille Action :
+    //   • Spells joueur ET version NPC/ennemi du même nom (RowId différent)
+    //   • Anciennes pet-actions Scholar converties en actions joueur en 7.0
+    //     (ex: "Fey Illumination" RowId 805 (pet) et 16545 (joueur DT))
+    // En comparant le CommandId de la hotbar à l'ensemble des RowIds connus,
+    // on trouve la correspondance quelle que soit la version présente.
+    private readonly Dictionary<string, List<uint>> _nameToIds = new(StringComparer.OrdinalIgnoreCase);
 
     // Nom anglais → nom dans la langue du client (FR, EN, DE, JP…)
     private readonly Dictionary<string, string> _nameToLocal = new(StringComparer.OrdinalIgnoreCase);
@@ -60,7 +67,7 @@ public class HotbarHighlighter : IDisposable
         BuildCache();
     }
 
-    // ── Cache nom de spell (EN) → Action RowId ────────────────────────────────
+    // ── Cache nom de spell (EN) → liste de RowIds ─────────────────────────────
     private void BuildCache()
     {
         try
@@ -73,19 +80,24 @@ public class HotbarHighlighter : IDisposable
                 return;
             }
 
-            // RowId → nom EN (pour construire la traduction ensuite).
-            // On utilise l'affectation directe (pas TryAdd) pour que les noms en
-            // double — typiquement les anciennes pet-actions Scholar converties en
-            // actions joueur en 7.0 (ex: "Whispering Dawn", "Fey Illumination") —
-            // soient toujours résolus vers le RowId le plus récent (le plus élevé),
-            // qui correspond à la version réellement placée sur la hotbar.
+            // On accumule TOUS les RowIds par nom de spell.
+            // Cela permet de gérer :
+            //   - les actions joueur ET les actions NPC/ennemi du même nom
+            //   - les pet-actions converties en actions joueur (Dawntrail 7.0)
+            // La correspondance se fait ensuite en testant si le CommandId
+            // de la hotbar est dans la liste — peu importe lequel c'est.
             var idToEnName = new Dictionary<uint, string>();
             foreach (var row in enSheet)
             {
                 var name = row.Name.ToString();
                 if (!string.IsNullOrWhiteSpace(name))
                 {
-                    _nameToId[name]      = row.RowId;  // ← écrase si doublon (garde le plus haut RowId)
+                    if (!_nameToIds.TryGetValue(name, out var list))
+                    {
+                        list = new List<uint>(1);
+                        _nameToIds[name] = list;
+                    }
+                    list.Add(row.RowId);
                     idToEnName[row.RowId] = name;
                 }
             }
@@ -105,7 +117,7 @@ public class HotbarHighlighter : IDisposable
             }
 
             Plugin.Log.Information(
-                $"[XIVMit] HotbarHighlighter : {_nameToId.Count} actions EN indexées, " +
+                $"[XIVMit] HotbarHighlighter : {_nameToIds.Count} noms EN indexés, " +
                 $"{_nameToLocal.Count} traductions ({clientLang}).");
         }
         catch (Exception ex)
@@ -127,12 +139,16 @@ public class HotbarHighlighter : IDisposable
     {
         if (ActiveSpells.Count == 0) return;
 
-        // Résoudre les noms → IDs + conserver le timer associé
+        // Résoudre les noms → ensemble de RowIds + conserver le timer associé.
+        // Un même spell peut avoir plusieurs RowIds (ex: version joueur + version NPC).
+        // On les indexe tous — la comparaison avec le CommandId de la hotbar trouvera
+        // le bon quelle que soit la version stockée dans le slot.
         var targetTimers = new Dictionary<uint, double>();
         foreach (var (spell, timer) in ActiveSpells)
         {
-            if (_nameToId.TryGetValue(spell, out var id))
-                targetTimers[id] = timer;
+            if (_nameToIds.TryGetValue(spell, out var ids))
+                foreach (var id in ids)
+                    targetTimers[id] = timer;
             else
                 Plugin.Log.Verbose($"[XIVMit] '{spell}' non trouvé dans le cache EN.");
         }
@@ -222,13 +238,13 @@ public class HotbarHighlighter : IDisposable
     {
         var sb = new StringBuilder();
         sb.AppendLine("[XIVMit Debug] ========================================");
-        sb.AppendLine($"[XIVMit Debug] Cache EN : {_nameToId.Count} actions.");
+        sb.AppendLine($"[XIVMit Debug] Cache EN : {_nameToIds.Count} noms, {CountTotalIds()} RowIds au total.");
         sb.AppendLine($"[XIVMit Debug] ActiveSpells ({ActiveSpells.Count}) : {string.Join(", ", ActiveSpells.Keys)}");
 
         foreach (var (spell, timer) in ActiveSpells)
         {
-            if (_nameToId.TryGetValue(spell, out var id))
-                sb.AppendLine($"[XIVMit Debug]   '{spell}' (t={timer:F1}s) → ActionId {id}  ✓");
+            if (_nameToIds.TryGetValue(spell, out var ids))
+                sb.AppendLine($"[XIVMit Debug]   '{spell}' (t={timer:F1}s) → RowIds [{string.Join(", ", ids)}]  ✓");
             else
                 sb.AppendLine($"[XIVMit Debug]   '{spell}' → NON TROUVÉ dans le cache  ✗");
         }
@@ -261,7 +277,8 @@ public class HotbarHighlighter : IDisposable
         // Dump les nodes des bars qui ont nos spells
         var targetIds2 = new HashSet<uint>();
         foreach (var spell in ActiveSpells.Keys)
-            if (_nameToId.TryGetValue(spell, out var sid)) targetIds2.Add(sid);
+            if (_nameToIds.TryGetValue(spell, out var ids2))
+                foreach (var sid in ids2) targetIds2.Add(sid);
 
         for (var barIndex = 0; barIndex < 10; barIndex++)
         {
@@ -288,6 +305,13 @@ public class HotbarHighlighter : IDisposable
         }
 
         Plugin.Log.Information(sb.ToString());
+    }
+
+    private int CountTotalIds()
+    {
+        var total = 0;
+        foreach (var list in _nameToIds.Values) total += list.Count;
+        return total;
     }
 
     // ── Calcul de la position écran d'un node ─────────────────────────────────
